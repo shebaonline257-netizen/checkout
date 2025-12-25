@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Checkout</title>
+
+<style>
+body{font-family:Arial;background:#f4f6f8;margin:0}
+.container{max-width:900px;margin:30px auto;background:#fff;
+padding:25px;border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,.08)}
+h2{margin-top:0;border-bottom:2px solid #eee;padding-bottom:10px}
+.item{display:flex;justify-content:space-between;padding:8px 0;
+border-bottom:1px dashed #ddd}
+.summary{background:#fafafa;padding:15px;border-radius:8px;margin:20px 0}
+.summary p{display:flex;justify-content:space-between;margin:6px 0}
+.total{font-size:18px;font-weight:bold;color:#0a7cff}
+select,input,textarea{width:100%;padding:10px;margin-bottom:12px;
+border:1px solid #ccc;border-radius:6px}
+button{background:#0a7cff;color:#fff;padding:12px;border:none;
+width:100%;border-radius:6px;font-size:16px;cursor:pointer}
+button:hover{background:#085ec0}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h2>🛒 Checkout</h2>
+
+<div id="cart"></div>
+
+<div class="summary">
+  <p><span>Subtotal</span><span id="subtotal">0</span> ৳</p>
+
+  <p>
+    <span>Delivery Area</span>
+    <select id="area">
+      <option value="70">Inside Dhaka (70৳)</option>
+      <option value="130">Outside Dhaka (130৳)</option>
+    </select>
+  </p>
+
+  <p><span>Delivery</span><span id="delivery">70</span> ৳</p>
+  <p class="total"><span>Total</span><span id="total">0</span> ৳</p>
+</div>
+
+<h2>📋 Customer Info</h2>
+
+<form id="orderForm">
+  <input id="name" placeholder="Full Name" required>
+  <input id="mobile" placeholder="Mobile Number" required>
+  <input id="email" placeholder="Email (optional)">
+  <textarea id="address" placeholder="Full Address" required></textarea>
+  <textarea id="note" placeholder="Order Note (optional)"></textarea>
+  <button type="submit">Confirm Order</button>
+</form>
+</div>
+
+<script>
+/* ===== READ CART FROM LOCAL STORAGE ===== */
+let cart = JSON.parse(localStorage.getItem("simpleCart_items")) || [];
+let subtotal = 0;
+const cartBox = document.getElementById("cart");
+
+cart.forEach(item=>{
+  subtotal += item.price * item.quantity;
+  cartBox.innerHTML += `
+    <div class="item">
+      <span>${item.name} × ${item.quantity}</span>
+      <span>${item.price * item.quantity} ৳</span>
+    </div>`;
+});
+document.getElementById("subtotal").innerText = subtotal;
+
+/* ===== TOTAL ===== */
+function updateTotal(){
+  const d = Number(area.value);
+  delivery.innerText = d;
+  total.innerText = subtotal + d;
+}
+area.onchange = updateTotal;
+updateTotal();
+
+/* ===== SUBMIT ORDER ===== */
+orderForm.onsubmit = function(e){
+  e.preventDefault();
+
+  if(cart.length === 0){
+    alert("Cart empty");
+    return;
+  }
+
+  const data={
+    name:name.value,
+    mobile:mobile.value,
+    email:email.value,
+    address:address.value,
+    note:note.value,
+    delivery:Number(area.value),
+    subtotal:subtotal,
+    total:total.innerText,
+    products:cart
+  };
+
+  fetch("https://script.google.com/macros/s/AKfycbybbBnB2-XTfG8PH0cuYf3H36bHjAjhKgxJqshlfwQ/dev",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(data)
+  })
+  .then(()=>{
+    alert("Order placed successfully!");
+    localStorage.removeItem("simpleCart_items");
+    window.location.href="https://YOUR-BLOGGER-SITE.blogspot.com/";
+  })
+  .catch(()=>{
+    alert("Order failed, try again.");
+  });
+};
+</script>
+
+</body>
+</html>
